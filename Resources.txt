@@ -1,0 +1,1 @@
+Install google-generativeai, pypdf2, dotenv, nltk, sumy, flask, lxml, os-sys

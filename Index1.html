@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Summarization Tool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        input[type="file"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        label {
+            font-weight: 500;
+            margin-bottom: 5px;
+            text-align: left;
+        }
+        select, input[type="submit"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            transition: border-color 0.3s;
+        }
+        select:focus, input[type="file"]:focus, input[type="submit"]:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        input[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        .summary-container {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .summary-container h2 {
+            margin-bottom: 10px;
+        }
+        .spinner {
+            display: none;
+            margin-top: 20px;
+        }
+        .spinner div {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #007bff;
+            border-top: 3px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PDF Summarization Tool</h1>
+        <form action="/summarize" method="post" enctype="multipart/form-data" id="summaryForm">
+            <select name="object_type" id="object_type" required>
+                <option value="PDF">PDF</option>
+                <option value="URL">URL</option>
+            </select><br>
+
+            <input type="file" name="pdf_file" accept=".pdf"><br>
+            <input type="text" name="url" placeholder="https://example.com">
+            <label for="summary_type">Summary Type:</label>
+            <select name="summary_type" id="summary_type" required>
+                <option value="abstractive">Abstractive</option>
+                <option value="extractive">Extractive</option>
+            </select><br>
+            <input type="submit" value="Summarize">
+        </form>
+        <div class="spinner" id="spinner">
+            <div></div>
+        </div>
+        {% if summary %}
+        <div class="summary-container">
+            <h2>Summary:</h2>
+            <p>{{ summary }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        document.getElementById('summaryForm').addEventListener('submit', function() {
+            document.getElementById('spinner').style.display = 'flex';
+        });
+    </script>
+</body>
+</html>

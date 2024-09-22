@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Summarization Tool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            background-color: #87CEEB; /* Sky blue background for light mode */
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #0056b3;
+            font-weight: 500;
+        }
+        .form-section {
+            display: none;
+            margin-top: 20px;
+        }
+        .form-section.active {
+            display: block;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        label {
+            font-size: 16px;
+            font-weight: 500;
+            text-align: left;
+            color: #555;
+            margin-bottom: 8px;
+        }
+        input[type="file"], input[type="text"], select, input[type="submit"] {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            width: 100%;
+            background-color: #f9f9f9;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+        input[type="file"]:focus, input[type="text"]:focus, select:focus {
+            border-color: #0056b3;
+            outline: none;
+        }
+        input[type="submit"] {
+            background-color: #0056b3;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            border: none;
+        }
+        input[type="submit"]:hover {
+            background-color: #003d80;
+        }
+        .summary-container {
+            margin-top: 20px;
+            text-align: left;
+            max-height: 300px; /* Adjust this value as needed */
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        .summary-container h2 {
+            margin-bottom: 12px;
+            color: #0056b3;
+            font-size: 20px;
+            font-weight: 500;
+        }
+        .summary-container p {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .spinner {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .spinner div {
+            width: 30px;
+            height: 30px;
+            border: 4px solid #0056b3;
+            border-top: 4px solid transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+        }
+
+        /* Dark Mode Styles */
+        .dark-mode {
+            background-color: #2e2e2e;
+            color: #e0e0e0;
+        }
+        .dark-mode .container {
+            background-color: #3c3c3c;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .dark-mode input[type="file"], 
+        .dark-mode input[type="text"], 
+        .dark-mode select {
+            background-color: #4f4f4f;
+            border-color: #666;
+            color: #e0e0e0;
+        }
+        .dark-mode input[type="submit"] {
+            background-color: #003d80;
+        }
+        .dark-mode .summary-container h2 {
+            color: #66b2ff;
+        }
+
+        /* Toggle Button Styles */
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .theme-toggle input {
+            display: none;
+        }
+        .theme-toggle label {
+            cursor: pointer;
+            background-color: #0056b3;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        .theme-toggle input:checked + label {
+            background-color: #4caf50;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+            margin-left: 10px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+        }
+        input:checked + .slider {
+            background-color: #4caf50;
+        }
+        input:checked + .slider:before {
+            transform: translateX(14px);
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-toggle">
+        <label for="themeSwitch">
+            Dark Mode
+            <div class="switch">
+                <input type="checkbox" id="themeSwitch">
+                <span class="slider"></span>
+            </div>
+        </label>
+    </div>
+    <div class="container">
+        <h1>PDF Summarization Tool</h1>
+        <form action="/summarize" method="post" enctype="multipart/form-data" id="mainForm">
+            <label for="object_type">Select Type:</label>
+            <select name="object_type" id="object_type" required>
+                <option value="">Select Method</option>
+                <option value="PDF">PDF</option>
+                <option value="URL">URL</option>
+            </select>
+
+            <div id="pdfSection" class="form-section">
+                <label for="pdf_file">Upload PDF:</label>
+                <input type="file" name="pdf_file" accept=".pdf">
+
+                <label for="summary_type">Summary Type:</label>
+                <select name="summary_type" required>
+                    <option value="abstractive">Abstractive</option>
+                    <option value="extractive">Extractive</option>
+                </select>
+            </div>
+
+            <div id="urlSection" class="form-section">
+                <label for="url">Enter URL:</label>
+                <input type="text" name="url" placeholder="https://example.com">
+
+                <label for="summary_type_url">Summary Type:</label>
+                <select name="summary_type_url" required>
+                    <option value="abstractive">Abstractive</option>
+                    <option value="extractive">Extractive</option>
+                </select>
+            </div>
+
+            <input type="submit" value="Summarize">
+        </form>
+        <div class="spinner" id="spinner">
+            <div></div>
+        </div>
+        {% if summary %}
+        <div class="summary-container">
+            <h2>Summary:</h2>
+            <p>{{ summary }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        const themeSwitch = document.getElementById('themeSwitch');
+        const body = document.body;
+
+        // Check for saved theme in local storage
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            body.classList.toggle('dark-mode', savedTheme === 'dark');
+            themeSwitch.checked = savedTheme === 'dark';
+        }
+
+        themeSwitch.addEventListener('change', () => {
+            const isDarkMode = themeSwitch.checked;
+            body.classList.toggle('dark-mode', isDarkMode);
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+        });
+
+        document.getElementById('object_type').addEventListener('change', function() {
+            const pdfSection = document.getElementById('pdfSection');
+            const urlSection = document.getElementById('urlSection');
+            
+            if (this.value === 'PDF') {
+                pdfSection.classList.add('active');
+                urlSection.classList.remove('active');
+            } else if (this.value === 'URL') {
+                urlSection.classList.add('active');
+                pdfSection.classList.remove('active');
+            } else {
+                pdfSection.classList.remove('active');
+                urlSection.classList.remove('active');
+            }
+        });
+
+        document.getElementById('mainForm').addEventListener('submit', function() {
+            document.getElementById('spinner').style.display = 'flex';
+        });
+    </script>
+</body>
+</html>
